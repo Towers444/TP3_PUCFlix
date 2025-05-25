@@ -113,16 +113,23 @@ public class ControleSerie {
         return series;
     }
 
+    /*
+	buscarSerieListaInvertida - Função para buscar séries utilizando a lista invertida
+	@param entrada - Texto da consulta inserido pelo usuário (ex: nome da série ou termos associados)
+	@throws Exception - Pode lançar exceções relacionadas à leitura de arquivos ou problemas internos
+    */
     public void buscarSerieListaInvertida(String entrada) throws Exception {
         
-        List<ElementoLista> elementos =  buscarSeries(entrada, 4);
+        // Realiza a busca de séries com base nos termos da entrada e total de séries indexadas (4 neste caso)
+        List<ElementoLista> elementos = buscarSeries(entrada, 4);
 
+        // Exibe os elementos retornados da lista invertida (ID e frequência para cada termo encontrado)
         System.out.print("Elementos: ");
         for (ElementoLista el : elementos) {
             System.out.print(el + " ");
         }
-        
     }
+
 
     /*
      * buscarSerieEpisodios - Função para buscar uma lista com todos os Episódios de uma determinada Série
@@ -330,81 +337,111 @@ public class ControleSerie {
         }
     }
 
+    /*
+	incluirListaInvertida - Função para indexar uma série e inserir seus termos na lista invertida
+	@param s - Objeto da classe Serie a ser indexado
+	@param id - Identificador único da série
+	@param nomeEntidade - Nome da entidade (ex: "Serie", "Episodio") usado para definir o caminho dos arquivos da lista invertida
+	@return void - Não retorna valor; atualiza os arquivos da lista invertida com os termos da série
+    */
     public void incluirListaInvertida(Serie s, int id, String nomeEntidade) {
-
         try {
+            // Criação da estrutura de lista invertida
+            ListaInvertida lista;
 
-                ListaInvertida lista;
+            // Instancia o indexador e processa o nome da série (remove stopwords e calcula TF)
+            IndexadorTexto idx = new IndexadorTexto();
+            Map<String, Float> freq = idx.processar(s.getNome());
 
-                IndexadorTexto idx = new IndexadorTexto();
-                Map<String, Float> freq = idx.processar(s.getNome());
+            // Cria o diretório "dados" se não existir
+            File d = new File("dados");
+            if (!d.exists())
+                d.mkdir();
 
-                File d = new File("dados");
-                if (!d.exists())
-                    d.mkdir();
-                lista = new ListaInvertida(4, "dados/dicionario." + nomeEntidade +".listainv.db", "dados/blocos." + nomeEntidade + ".listainv.db");
+            // Inicializa a lista invertida com base nos arquivos da entidade
+            lista = new ListaInvertida(4, 
+                "dados/dicionario." + nomeEntidade + ".listainv.db", 
+                "dados/blocos." + nomeEntidade + ".listainv.db");
 
-                for (Map.Entry<String, Float> entrada : freq.entrySet()) {
-                    String termo = entrada.getKey();
-                    float frequencia = entrada.getValue();
+            // Para cada termo e sua frequência, cria uma entrada na lista invertida
+            for (Map.Entry<String, Float> entrada : freq.entrySet()) {
+                String termo = entrada.getKey();
+                float frequencia = entrada.getValue();
 
-                    lista.create(termo, new ElementoLista(id, frequencia));
-                    lista.print();
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
+                // Adiciona o termo com o ID da série e a frequência TF
+                lista.create(termo, new ElementoLista(id, frequencia));
+                
+                // Exibe a lista invertida atual (apenas para debug/visualização)
+                lista.print();
             }
 
+        } catch (Exception e) {
+            e.printStackTrace(); // Captura e mostra qualquer exceção que ocorrer
+        }
     }
 
+    /*
+        buscarSeries - Função para buscar séries que contêm os termos da consulta, ordenando-as por relevância TF-IDF
+        @param entrada - Texto de busca inserido pelo usuário
+        @param totalSeries - Número total de séries indexadas, utilizado para cálculo de IDF
+        @return resultado - Lista de objetos ElementoLista com os IDs das séries e seus respectivos pesos TF-IDF
+    */
     public static List<ElementoLista> buscarSeries(String entrada, int totalSeries) {
         List<ElementoLista> resultado = new ArrayList<>();
 
         try {
+            // Pré-processamento da query: remove stopwords e pontuação
             IndexadorTexto idx = new IndexadorTexto();
             String[] termos = idx.removeStopwords(entrada);
 
             System.out.println("Termos processados: " + Arrays.toString(termos));
 
-            // Inicializa lista invertida
-            ListaInvertida lista = new ListaInvertida(4, "dados/dicionario.Serie.listainv.db", "dados/blocos.Serie.listainv.db");
+            // Inicializa lista invertida para séries
+            ListaInvertida lista = new ListaInvertida(4, 
+                "dados/dicionario.Serie.listainv.db", 
+                "dados/blocos.Serie.listainv.db");
 
+            // Mapa para acumular os valores de TF-IDF para cada ID de série
             Map<Integer, Float> mapaResultados = new HashMap<>();
 
+            // Para cada termo da busca
             for (String termo : termos) {
+                // Lê os elementos (IDs e TFs) associados ao termo na lista invertida
                 ElementoLista[] elementos = lista.read(termo);
 
                 if (elementos != null && elementos.length > 0) {
-                    float idf = (float)(Math.log10((double)totalSeries / elementos.length) + 1);
+                    // Cálculo do IDF para o termo: log10(N / df) + 1
+                    float idf = (float)(Math.log10((double) totalSeries / elementos.length) + 1);
                     System.out.println("IDF para '" + termo + "': " + idf);
 
+                    // Para cada ocorrência da palavra (documento com esse termo)
                     for (ElementoLista el : elementos) {
-                        float tfIdf = el.getFrequencia() * idf;
+                        float tfIdf = el.getFrequencia() * idf; // TF-IDF = TF * IDF
+
+                        // Soma o TF-IDF no mapa. Se o ID já existe, acumula.
                         mapaResultados.put(
                             el.getId(),
                             mapaResultados.getOrDefault(el.getId(), 0f) + tfIdf
                         );
                     }
                 } else {
+                    // Termo não encontrado no índice
                     System.out.println("Termo '" + termo + "' não encontrado na lista invertida.");
                 }
             }
 
-            // Monta lista ordenada
+            // Converte o mapa de resultados em uma lista de ElementoLista
             for (Map.Entry<Integer, Float> entradaMapa : mapaResultados.entrySet()) {
                 resultado.add(new ElementoLista(entradaMapa.getKey(), entradaMapa.getValue()));
             }
 
+            // Ordena os resultados por ordem decrescente de relevância (TF-IDF)
             resultado.sort((a, b) -> Float.compare(b.getFrequencia(), a.getFrequencia()));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Mostra qualquer erro ocorrido
         }
 
-        return resultado;
+        return resultado; // Retorna a lista de séries ordenadas por relevância
     }
-
-
-
-}  
+}
