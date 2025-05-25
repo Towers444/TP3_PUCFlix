@@ -6,16 +6,14 @@ Sobre o nosso grupo: [Membros!](#%EF%B8%8F-autores)
 
 # ‼️ Checklist
 
-+ As operações de inclusão, busca, alteração e exclusão de atores estão implementadas e funcionando corretamente? ✅
-+ O relacionamento entre séries e atores foi implementado com árvores B+ e funciona corretamente, assegurando a consistência entre as duas entidades? ✅
-+ É possível consultar quais são os atores de uma série? ✅
-+ É posssível consultar quais são as séries de um ator? ✅
-+ A remoção de séries remove os seus vínculos de atores? ✅
-+ A inclusão de um ator em uma série em um episódio se limita aos atores existentes? ✅
-+ A remoção de um ator checa se há alguma série vinculado a ele?✅
-+ O trabalho está funcionando corretamente? ✅
-+ O trabalho está completo? ✅
-+ O trabalho é original e não a cópia de um trabalho de outro grupo? ✅
++ O índice invertido com os termos dos títulos das séries foi criado usando a classe ListaInvertida?
++ O índice invertido com os termos dos títulos dos episódios foi criado usando a classe ListaInvertida?
++ O índice invertido com os termos dos nomes dos atores foi criado usando a classe ListaInvertida++?
++ É possível buscar séries por palavras usando o índice invertido?
++ É possível buscar episódios por palavras usando o índice invertido?
++ É possível buscar atores por palavras usando o índice invertido?
++ O trabalho está completo?
++ O trabalho é original e não a cópia de um trabalho de um colega?
 
 # 📦 Classes do sistema
 
@@ -531,13 +529,11 @@ PucFlix v(versao)
 ## Lucas
 
 <div align="justify">
-    O TP2 contribuiu significativamente para o meu entendimento acerca da implementação física de relacionamentos N:N. Nesse sentido, pude explorar diferentes formas de implementar relacionamentos tão relevantes - seja com dois índices indiretos com Árvores B+ com os identificadores únicos, seja com a criação de uma nova entidade intermediária. Além disso, planejar as entregas e distribuir as responsabilidades dos meus colegas mostrou-se ser um desafio maior do que esperado, o que com certeza agrega à minha formação como programador e como colega de trabalho.
 </div>
 
 ## João
 
 <div align="justify">
-    A realização do TP2 se mostrou muito importante para o meu desenvolvimento, a fim de compreender como funciona melhor o tratamento e armazenamento de dados em memória secundária. O processo requeriu estudos para ter melhor compreensão do conteúdo e foi necessário o uso de estruturas como Arvore B+ e Tabela Hash Extensível para organizar as informações de um banco de dados de séries, com seus respectivos episódios e atuações. No geral, demonstrou-se ser um processo tranquilo, graças ao apoio dos meus colegas de equipe e o conteúdo promovido dentro de sala de aula.  
 </div>
 
 # Planos futuros
