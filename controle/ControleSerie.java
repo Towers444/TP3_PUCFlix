@@ -1,16 +1,15 @@
 package controle;
 
 import modelo.ArquivoSerie;
+import modelo.ArquivoListaInvertida;
 import entidades.Serie;
 import indexador.IndexadorTexto;
 import entidades.Episodio;
-
-import java.util.List;
-import java.util.Map;
-
 import aeds3.ElementoLista;
 import aeds3.ListaInvertida;
 
+import java.util.List;
+import java.util.Map;
 import java.io.File;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -19,12 +18,14 @@ import java.util.HashMap;
 
 public class ControleSerie {
     private ArquivoSerie arqSerie;
+    private ArquivoListaInvertida arqListaInvertida;
 
     /*
      * Construtor da classe ControleSerie
      */
     public ControleSerie() throws Exception {
         this.arqSerie = new ArquivoSerie();
+        this.arqListaInvertida = new ArquivoListaInvertida("serie");
     }
 
     /*
@@ -114,14 +115,12 @@ public class ControleSerie {
     }
 
     /*
-	buscarSerieListaInvertida - Função para buscar séries utilizando a lista invertida
-	@param entrada - Texto da consulta inserido pelo usuário (ex: nome da série ou termos associados)
-	@throws Exception - Pode lançar exceções relacionadas à leitura de arquivos ou problemas internos
-    */
+	 * buscarSerieListaInvertida - Função para buscar séries utilizando a lista invertida
+	 * @param entrada - Texto da consulta inserido pelo usuário (ex: nome da série ou termos associados)
+     */
     public void buscarSerieListaInvertida(String entrada) throws Exception {
-        
-        // Realiza a busca de séries com base nos termos da entrada e total de séries indexadas (4 neste caso)
-        List<ElementoLista> elementos = buscarSeries(entrada, 4);
+        // Realiza a busca de Séries com base nos termos da entrada e total de séries indexadas (4 neste caso)
+        List<ElementoLista> elementos = arqListaInvertida.buscarEntidades(entrada, 4);
 
         // Exibe os elementos retornados da lista invertida (ID e frequência para cada termo encontrado)
         System.out.print("Elementos: ");
@@ -338,12 +337,12 @@ public class ControleSerie {
     }
 
     /*
-	incluirListaInvertida - Função para indexar uma série e inserir seus termos na lista invertida
-	@param s - Objeto da classe Serie a ser indexado
-	@param id - Identificador único da série
-	@param nomeEntidade - Nome da entidade (ex: "Serie", "Episodio") usado para definir o caminho dos arquivos da lista invertida
-	@return void - Não retorna valor; atualiza os arquivos da lista invertida com os termos da série
-    */
+	 * incluirListaInvertida - Função para indexar uma série e inserir seus termos na lista invertida
+	 * @param s - Objeto da classe Serie a ser indexado
+	 * @param id - Identificador único da série
+	 * @param nomeEntidade - Nome da entidade (ex: "Serie", "Episodio") usado para definir o caminho dos arquivos da lista invertida
+	 * @return void - Não retorna valor; atualiza os arquivos da lista invertida com os termos da série
+     */
     public void incluirListaInvertida(Serie s, int id, String nomeEntidade) {
         try {
             // Criação da estrutura de lista invertida
