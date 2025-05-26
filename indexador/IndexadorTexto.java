@@ -2,6 +2,7 @@ package indexador;
 
 import java.text.Normalizer;
 import java.util.*;
+import java.io.*;
 
 public class IndexadorTexto {
 
@@ -20,17 +21,64 @@ public class IndexadorTexto {
         this.texto = texto;
     }
 
+    /**
+     * extractLemmas - Função de rotina que executa código em Python e coleta os lemas de uma frase
+     * @param text String a ser lematizada
+     * @return List<String> com lemmas da frase
+     * @throws IOException
+     * @throws InterruptedException
+     */ 
+    public static List<String> extractLemmas(String text) throws IOException, InterruptedException {
+        Process process = new ProcessBuilder("python3", "indexador/lematizar.py")
+            .redirectErrorStream(true)
+            .start();
+        
+        // Enviar texto para o Python
+        try (OutputStream os = process.getOutputStream();
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"))) {
+            writer.write(text);
+        }
+        
+        // Ler resultados
+        List<String> lemmas = new ArrayList<>();
+        try (InputStream is = process.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lemmas.add(line);
+            }
+        }
+
+        StringBuilder errorMsg = new StringBuilder();
+        try (BufferedReader errorReader = new BufferedReader(
+                new InputStreamReader(process.getErrorStream(), "UTF-8"))) {
+            errorReader.lines().forEach(line -> errorMsg.append(line).append("\n"));
+        }
+        
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new RuntimeException("Erro no script Python. Código: " + exitCode);
+        }
+        
+        return lemmas;
+    }
+
     /*
-        removeStopwords - Função para remover palavras irrelevantes e limpar o texto
+        normalizarTexto - Função para remover palavras irrelevantes e limpar o texto
         @param texto - Texto original a ser processado
         @return palavrasValidas - Array de palavras significativas sem stopwords e pontuação
     */
-    public String[] removeStopwords(String texto) {
+    public String[] normalizarTexto(String texto) {
 
         List<String> palavrasValidas = new ArrayList<>();
-
-        // Divide o texto em palavras usando o espaço em branco como delimitador
-        String[] palavras = texto.split("\\s+");
+        List<String> palavras = null;
+        try {
+            palavras = extractLemmas(texto);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         for (String palavra : palavras) {
             // Remove pontuação e converte para minúsculas
@@ -84,7 +132,7 @@ public class IndexadorTexto {
         @return frequencias - Mapa de termos relevantes e suas respectivas frequências no texto
     */
     public Map<String, Float> processar(String texto) {
-        String[] palavrasFiltradas = removeStopwords(texto);
+        String[] palavrasFiltradas = normalizarTexto(texto);
         return calcularFrequencia(palavrasFiltradas);
     }
 

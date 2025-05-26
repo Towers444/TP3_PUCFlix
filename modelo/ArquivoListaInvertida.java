@@ -73,7 +73,7 @@ public class ArquivoListaInvertida {
 
         // Pré-processamento da query: remove stopwords e pontuação
         IndexadorTexto idx = new IndexadorTexto();
-        String[] termos = idx.removeStopwords(entrada);
+        String[] termos = idx.normalizarTexto(entrada);
 
         System.out.println("Termos processados: " + Arrays.toString(termos));
 
