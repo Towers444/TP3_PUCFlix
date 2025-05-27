@@ -3,6 +3,8 @@ package indexador;
 import java.text.Normalizer;
 import java.util.*;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class IndexadorTexto {
 
@@ -21,47 +23,89 @@ public class IndexadorTexto {
         this.texto = texto;
     }
 
-    /**
-     * extractLemmas - Função de rotina que executa código em Python e coleta os lemas de uma frase
-     * @param text String a ser lematizada
-     * @return List<String> com lemmas da frase
-     * @throws IOException
-     * @throws InterruptedException
-     */ 
-    public static List<String> extractLemmas(String text) throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("python3", "indexador/lematizar.py")
-            .redirectErrorStream(true)
-            .start();
-        
-        // Enviar texto para o Python
-        try (OutputStream os = process.getOutputStream();
-             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"))) {
-            writer.write(text);
+    public static List<String> extractLemmas(String text) throws Exception {
+        String json = "{\"text\": \"" + text.replace("\"", "\\\"") + "\"}";
+        URL url = new URL("http://localhost:8000/process");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
+    
+        // Envia o JSON
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(json.getBytes());
         }
-        
-        // Ler resultados
-        List<String> lemmas = new ArrayList<>();
-        try (InputStream is = process.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
+    
+        // Lê a resposta
+        StringBuilder response = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
             String line;
-            while ((line = reader.readLine()) != null) {
-                lemmas.add(line);
+            while ((line = br.readLine()) != null) {
+                response.append(line);
             }
         }
-
-        StringBuilder errorMsg = new StringBuilder();
-        try (BufferedReader errorReader = new BufferedReader(
-                new InputStreamReader(process.getErrorStream(), "UTF-8"))) {
-            errorReader.lines().forEach(line -> errorMsg.append(line).append("\n"));
+    
+        // Processa a resposta JSON manualmente
+        String responseStr = response.toString().trim();
+        List<String> lemmas = new ArrayList<>();
+    
+        if (responseStr.startsWith("[") && responseStr.endsWith("]")) {
+            // Remove colchetes
+            responseStr = responseStr.substring(1, responseStr.length() - 1);
+            if (!responseStr.isEmpty()) {
+                String[] parts = responseStr.split(",");
+                for (String part : parts) {
+                    lemmas.add(part.trim().replaceAll("^\"|\"$", ""));
+                }
+            }
         }
-        
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            throw new RuntimeException("Erro no script Python. Código: " + exitCode);
-        }
-        
+    
         return lemmas;
     }
+
+    // /**
+    //  * extractLemmas - Função de rotina que executa código em Python e coleta os lemas de uma frase
+    //  * @param text String a ser lematizada
+    //  * @return List<String> com lemmas da frase
+    //  * @throws IOException
+    //  * @throws InterruptedException
+    //  */ 
+    // public static List<String> extractLemmas(String text) throws IOException, InterruptedException {
+    //     Process process = new ProcessBuilder("python3", "indexador/lematizar.py")
+    //         .redirectErrorStream(true)
+    //         .start();
+        
+    //     // Enviar texto para o Python
+    //     try (OutputStream os = process.getOutputStream();
+    //          BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"))) {
+    //         writer.write(text);
+    //     }
+        
+    //     // Ler resultados
+    //     List<String> lemmas = new ArrayList<>();
+    //     try (InputStream is = process.getInputStream();
+    //          BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
+    //         String line;
+    //         while ((line = reader.readLine()) != null) {
+    //             lemmas.add(line);
+    //         }
+    //     }
+
+    //     StringBuilder errorMsg = new StringBuilder();
+    //     try (BufferedReader errorReader = new BufferedReader(
+    //             new InputStreamReader(process.getErrorStream(), "UTF-8"))) {
+    //         errorReader.lines().forEach(line -> errorMsg.append(line).append("\n"));
+    //     }
+        
+    //     int exitCode = process.waitFor();
+    //     if (exitCode != 0) {
+    //         throw new RuntimeException("Erro no script Python. Código: " + exitCode+" ["+text+"]");
+    //     }
+        
+    //     return lemmas;
+    // }
+    
 
     /*
         normalizarTexto - Função para remover palavras irrelevantes e limpar o texto
@@ -73,10 +117,13 @@ public class IndexadorTexto {
         List<String> palavrasValidas = new ArrayList<>();
         List<String> palavras = null;
         try {
+            // palavras = extractLemmas(texto);
             palavras = extractLemmas(texto);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
+            e.printStackTrace(); 
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
