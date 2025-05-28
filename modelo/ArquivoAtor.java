@@ -1,16 +1,18 @@
 package modelo;
 
+import aeds3.Arquivo;
+import aeds3.ArvoreBMais;
+import aeds3.ElementoLista;
 import entidades.Ator;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import aeds3.*;
-
 public class ArquivoAtor extends Arquivo<Ator> {
     ArvoreBMais<ParNomeID> indiceNome;
     ArvoreBMais<ParIDID> indiceAtuacaoSerie;
     ArvoreBMais<ParIDID> indiceAtuacaoAtor;
+    private Buscador buscador;
 
     /*
      * Construtor da classe ArquivoAtor
@@ -35,6 +37,9 @@ public class ArquivoAtor extends Arquivo<Ator> {
             5,
             "./dados/indice/indiceAtuacaoAtor.db"
         );
+
+        // Chamar o construtor do Buscador para entidades do tipo Ator
+        this.buscador = new Buscador("ator");
     }
 
     /*
@@ -45,6 +50,8 @@ public class ArquivoAtor extends Arquivo<Ator> {
         int id = super.create(a);
 
         indiceNome.create(new ParNomeID(a.getNome(), id));
+
+        buscador.incluirEntidade(a.getID(), a.getNome());
 
         return id;
     }
@@ -63,7 +70,7 @@ public class ArquivoAtor extends Arquivo<Ator> {
         }
 
         if (super.delete(id)) {
-            return indiceNome.delete(new ParNomeID(a.getNome(), id));
+            return indiceNome.delete(new ParNomeID(a.getNome(), id)) && buscador.excluirEntidade(a.getID(), a.getNome());
         }
 
         return false;
@@ -80,6 +87,7 @@ public class ArquivoAtor extends Arquivo<Ator> {
             if (!antigo.getNome().equals(novoAtor.getNome())) {
                 indiceNome.delete(new ParNomeID(antigo.getNome(), antigo.getID()));
                 indiceNome.create(new ParNomeID(novoAtor.getNome(), novoAtor.getID()));
+                buscador.alterarEntidade(antigo.getID(), antigo.getNome(), novoAtor.getNome());
             }
             return true;
         }
@@ -106,4 +114,29 @@ public class ArquivoAtor extends Arquivo<Ator> {
         return atores;
     }
 
+    /*
+	 * readListaInvertida - Função para buscar Atores utilizando a lista invertida
+	 * @param entrada - Texto da consulta inserido pelo usuário (ex: nome do ator ou termos associados)
+     * @return series - Lista de Atores encontrados na busca da lista invertida
+     */
+    public List<Ator> readListaInvertida(String entrada) throws Exception {
+        // Realizar a busca de Atores com base nos termos da entrada e total de séries indexados
+        List<ElementoLista> elementos = buscador.buscarEntidades(entrada, this.buscador.getNumeroEntidades());
+
+        // Testar se a busca teve sucesso
+        if (elementos == null || elementos.isEmpty()) 
+            throw new Exception("Nome não encontrado na Lista Invertida!");
+
+        // Criar lista de Atores a ser retornada
+        List<Ator> atores = new ArrayList<Ator>();
+
+        // Buscar as Séries encontradas na lista invertida
+        for (ElementoLista elemento : elementos) {
+            Ator a = read(elemento.getId());
+            atores.add(a);
+        }
+
+        // Retornar
+        return atores;
+    }
 }

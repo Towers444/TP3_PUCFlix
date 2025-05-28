@@ -7,45 +7,50 @@ import indexador.IndexadorTexto;
 import java.util.List;
 import java.util.Map;
 import java.io.File;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public class ArquivoListaInvertida {
+public class Buscador {
     private String nomeEntidade;
     private String caminhoDicionario;
     private String caminhoBlocos;
+    private ListaInvertida listaInvertida;
+    private IndexadorTexto idx;
 
     /*
-     * Construtor da classe ArquivoListaInvertida
+     * Construtor da classe Buscador 
      */
-    public ArquivoListaInvertida(String nomeEntidade) {
+    public Buscador(String nomeEntidade) throws Exception {
         this.nomeEntidade = nomeEntidade;
-        this.caminhoDicionario = "dados/dicionario." + nomeEntidade + ".listainv.db";
-        this.caminhoBlocos = "dados/blocos." + nomeEntidade + ".listainv.db";
+        this.caminhoDicionario = "dados/" + nomeEntidade + "/dicionario.listainv.db";
+        this.caminhoBlocos = "dados/" + nomeEntidade + "/blocos.listainv.db";
+        this.listaInvertida = new ListaInvertida(4, caminhoDicionario, caminhoBlocos);
+        this.idx = new IndexadorTexto();
+    }
+
+    public int getNumeroEntidades() {
+        int numeroEntidades;
+        try {
+            numeroEntidades = this.listaInvertida.numeroEntidades();
+        } catch (Exception e) {
+            numeroEntidades = 0;
+        }
+        return numeroEntidades;
     }
 
     /*
-	 * incluirListaInvertida - Função para indexar uma entidade e inserir seus termos na lista invertida
+	 * incluirEntidade - Função para indexar uma entidade e inserir seus termos na lista invertida
      * @param id - Identificador único da entidade
      * @param nome - Nome a ser adicionado à lista invertida
      */
-    public void incluirListaInvertida(int id, String nome) throws Exception {
-        // Criar da estrutura de lista invertida
-        ListaInvertida lista;
-
-        // Instanciar o indexador e processa o nome da entidade (remove stopwords e calcula TF)
-        IndexadorTexto idx = new IndexadorTexto();
-        Map<String, Float> freq = idx.processar(nome);
+    public void incluirEntidade(int id, String nome) throws Exception {
+        // Procesar o nome da entidade (remove stopwords e calcula TF)
+        Map<String, Float> freq = this.idx.processar(nome);
 
         // Criar o diretório "dados" se não existir
         File d = new File("dados");
-        if (!d.exists())
-            d.mkdir();
-
-        // Inicializar a lista invertida com base nos arquivos da entidade
-        lista = new ListaInvertida(4, caminhoDicionario, caminhoBlocos);
+        if (!d.exists()) d.mkdir();
 
         // Para cada termo e sua frequência, criar uma entrada na lista invertida
         for (Map.Entry<String, Float> entrada : freq.entrySet()) {
@@ -54,11 +59,49 @@ public class ArquivoListaInvertida {
             float frequencia = entrada.getValue();
 
             // Adicionar o termo com o ID da entidade e a frequência TF
-            lista.create(termo, new ElementoLista(id, frequencia));
+            this.listaInvertida.create(termo, new ElementoLista(id, frequencia));
             
             // Exibir a lista invertida atual (apenas para debug/visualização)
-            lista.print();
+            this.listaInvertida.print();
         }
+    }
+
+    /*
+	 * excluirEntidade - Função para remover os termos de uma entidade na lista invertida
+     * @param id - Identificador único da entidade a ser removida
+     * @param nome - Nome da entidade a ser removida da lista invertida
+     * @return boolean - True, se bem sucedido. False, caso contrário
+     */
+    public boolean excluirEntidade(int id, String nome) throws Exception {
+        // Pré-processamento da query: remove stopwords e pontuação
+        String[] termos = this.idx.normalizarTexto(nome);
+    
+        // Percorrer os termos e remover a EntidadeLista de cada um
+        for (String termo : termos) {
+            // Testar se a exclusão foi bem sucedida. Em caso de falha, retornar False
+            if ( !this.listaInvertida.delete(termo, id) ) return false;
+        }
+
+        // Retornar
+        return true;
+    }
+
+    /*
+	 * alterarEntidade - Função para alterar os termos de uma entidade na lista invertida
+     * @param id - Identificador único da entidade a ser removida
+     * @param nomeOriginal - Nome original da entidade a ser atualizada na lista invertida
+     * @param nomeAlterado - Nome alterado da entidade a ser atualizada na lista invertida
+     * @return boolean - True, se bem sucedido. False, caso contrário
+     */
+    public boolean alterarEntidade(int id, String nomeOriginal, String nomeAlterado) throws Exception {
+        // Excluir os termos antigos da entidade
+        if ( !this.excluirEntidade(id, nomeOriginal) ) return false;
+
+        // Incluir os termos novos da entidade
+        this.incluirEntidade(id, nomeAlterado);
+
+        // Retornar
+        return true;
     }
 
     /*
@@ -72,13 +115,9 @@ public class ArquivoListaInvertida {
         List<ElementoLista> resultado = new ArrayList<>();
 
         // Pré-processamento da query: remove stopwords e pontuação
-        IndexadorTexto idx = new IndexadorTexto();
-        String[] termos = idx.normalizarTexto(entrada);
+        String[] termos = this.idx.normalizarTexto(entrada);
 
         System.out.println("Termos processados: " + Arrays.toString(termos));
-
-        // Inicializa lista invertida para a entidade
-        ListaInvertida lista = new ListaInvertida(4, caminhoDicionario, caminhoBlocos);
 
         // Criar Mapa para acumular os valores de TF-IDF para cada ID de entidade 
         Map<Integer, Float> mapaResultados = new HashMap<>();
@@ -86,7 +125,7 @@ public class ArquivoListaInvertida {
         // Percorrer cada termo da busca
         for (String termo : termos) {
             // Lê os elementos (IDs e TFs) associados ao termo na lista invertida
-            ElementoLista[] elementos = lista.read(termo);
+            ElementoLista[] elementos = this.listaInvertida.read(termo);
     
             // Testar se o elemento foi encontrado no índice
             if (elementos != null && elementos.length > 0) {

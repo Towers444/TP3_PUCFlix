@@ -7,6 +7,7 @@ import controle.ControleAtor;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,7 +35,7 @@ public class VisaoAtor {
             // Cabeçalho do menu
             System.out.println("\nPUCFlix v" + versao);
             System.out.println("--------------------------");
-            System.out.println("> Início > Atores");
+            System.out.println("> Início > Atores\n");
             System.out.println("1 - Incluir Ator");
             System.out.println("2 - Excluir Ator");
             System.out.println("3 - Alterar Ator");
@@ -68,12 +69,25 @@ public class VisaoAtor {
      * incluirAtor - Função para incluir um novo ator no sistema
      */
     public void incluirAtor() {
-        try {
-            Ator a = lerAtor();
-            int id = controleAtor.incluirAtor(a);
-            System.out.println("\nAtor incluído com sucesso! ID: " + id);
-        } catch (Exception e) {
-            System.err.println("\n[ERRO]: " + e.getMessage());
+        // Exibir título da ação
+        System.out.println("\n> Inclusão de Ator\n");
+        // Ler dados do Ator a ser incluído
+        Ator a = lerAtor();
+        // Confirmar a inclusão do Ator
+        System.out.print("\nConfirma a inclusão do Ator? (S/N) ");
+        // Identificar escolha
+        char resp = console.nextLine().charAt(0);
+        // Testar escolha
+        if (resp == 'S' || resp == 's') {
+            // Tentar incluir o Ator a partir do ControleAtor
+            try {
+                controleAtor.incluirAtor(a);
+                System.out.println("\nAtor incluído com sucesso!");
+            } catch(Exception e) {
+                System.err.println("\n[ERRO]: " + e.getMessage());
+            }
+        } else {
+            System.out.println("\nOperação cancelada!");
         }
     }
 
@@ -81,22 +95,34 @@ public class VisaoAtor {
      * alterarAtor - Função para alterar um ator já existente
      */
     public void alterarAtor() {
+        System.out.println("\nAlteração de Ator");
         try {
-            Ator antigo = buscarUmAtor();
-            Ator novo = lerAtor(antigo);
+            // Tenta ler o Ator com o ID fornecido
+            Ator a = buscarUmAtor();
+            if (a != null) {
+                System.out.println("\n> Insira os novos dados do Ator (caso deseje manter os dados originais, apenas tecle Enter): \n");
+                Ator novo = lerAtor(a);
+                novo.setID(a.getID());
 
-            // Confirmação da alteração
-            System.out.print("\nConfirma as alterações? (S/N) ");
-            char resp = console.nextLine().charAt(0);
-            if (resp == 'S' || resp == 's') {
-                if (controleAtor.alterarAtor(novo)) {
-                    System.out.println("\nAtor alterado com sucesso.");
+                // Confirmação da alteração
+                System.out.print("\nConfirma as alterações? (S/N) ");
+                char resp = console.next().charAt(0);
+                if (resp == 'S' || resp == 's') {
+                    // Salva as alterações no arquivo
+                    boolean alterado = controleAtor.alterarAtor(novo);
+                    if (alterado) {
+                        System.out.println("\nAtor alterado com sucesso!");
+                    } else {
+                        System.err.println("\n[ERRO]: Não foi possível alterar o Ator!");
+                    }
                 } else {
-                    System.err.println("\n[ERRO]: Não foi possível alterar o ator.");
+                    System.out.println("\nAlterações canceladas!");
                 }
+                // Limpar o buffer
+                console.nextLine();
             }
         } catch (Exception e) {
-            System.err.println("\n[ERRO]: " + e.getMessage());
+            System.out.println("[ERRO]: " + e.getMessage());
         }
     }
 
@@ -104,21 +130,34 @@ public class VisaoAtor {
      * excluirAtor - Função para excluir um ator do sistema
      */
     public void excluirAtor() {
+        // Mostrar cabeçalho
+        System.out.println("\nExclusão de Série");
+        // Iniciar bloco try-catch
         try {
+            // Tentar ler o Ator com o ID fornecido
             Ator a = buscarUmAtor();
-
-            // Confirmação da exclusão
-            System.out.print("Confirma a exclusão? (S/N) ");
-            char resp = console.nextLine().charAt(0);
-            if (resp == 'S' || resp == 's') {
-                if (controleAtor.excluirAtor(a)) {
-                    System.out.println("\nAtor excluído com sucesso.");
+            // Testar se o Ator é válido
+            if (a != null) {
+                // Confirmar a exclusão do Ator
+                System.out.print("\nConfirma a exclusão do ator? (S/N) ");
+                // Ler a resposta do usuário
+                char resp = console.nextLine().charAt(0);
+                // Testar a resposta do usuário
+                if (resp == 'S' || resp == 's') {
+                    // Chama o método de exclusão no arquivo
+                    boolean excluido = controleAtor.excluirAtor(a.getID());  
+                    // Testar o status da exclusão
+                    if (excluido) {
+                        System.out.println("\nAtor excluído com sucesso.");
+                    } else {
+                        System.out.println("\n[ERRO]: Não foi possível excluir o Ator!");
+                    }
                 } else {
-                    System.err.println("\n[ERRO]: Não foi possível excluir o ator.");
+                    System.out.println("\nExclusão cancelada!");
                 }
             }
         } catch (Exception e) {
-            System.err.println("\n[ERRO]: " + e.getMessage());
+            System.out.println("\n[ERRO]: " + e.getMessage());
         }
     }
 
@@ -126,11 +165,12 @@ public class VisaoAtor {
      * lerAtor - Lê os dados de um novo ator a ser incluído
      * @return Ator criado
      */
-    public Ator lerAtor() throws Exception {
-        // Definir os atributos de um Episódio
-        String nome, nacionalidade;
+    public Ator lerAtor() {
+        // Definir os atributos de um Ator
+        String nome;
         char genero = ' ';
-        LocalDate dataLancamento = null;
+        LocalDate dataNascimento = null;
+        String nacionalidade;
 
         // Definir variáveis auxiliares
         boolean dadosCorretos = false;
@@ -141,7 +181,7 @@ public class VisaoAtor {
         // Ler o nome do Ator
         do {
             // Ler o nome do Episódio do console
-            System.out.print("\nQual o nome do ator? (mínimo 3 caracteres): ");
+            System.out.print("Qual o nome do Ator? ");
             nome = console.nextLine();
 
             // Testar se a entrada é válida
@@ -158,13 +198,12 @@ public class VisaoAtor {
             if (aux.length() > 0){
                 genero = aux.toUpperCase().charAt(0);
                 dadosCorretos = ("MFI".indexOf(genero) == -1) ? false : true;
-                if (!dadosCorretos) System.err.println("[ERRO]: O gênero deve ser M/F/I");
+                if (!dadosCorretos) System.err.println("[ERRO]: O gênero deve ser M/F/I!");
             } else {
                 dadosCorretos = false;
-                System.err.println("[ERRO]: Insira algum valor");
+                System.err.println("[ERRO]: Insira algum valor!");
             }
         } while (!dadosCorretos);
-
 
         // Reiniciar variável de controle
         dadosCorretos = false;
@@ -178,19 +217,17 @@ public class VisaoAtor {
             if (matcher.matches()) {
                 dadosCorretos = true;
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                dataLancamento = LocalDate.parse(data, formatter);
+                dataNascimento = LocalDate.parse(data, formatter);
             } else {
                 dadosCorretos = false;
                 System.err.println("[ERRO]: O formato deve ser (dd/MM/yyyy)!");
             }
-        } while (!dadosCorretos);
-        
-        
+        } while (!dadosCorretos);        
         
         dadosCorretos = false;
         // Ler a nacionalidade
         do {
-            System.out.print("Qual a nacionalidade? (mínimo 2 caracteres): ");
+            System.out.print("Qual a nacionalidade? ");
             nacionalidade = console.nextLine();
 
             // Testar se a entrada é válida
@@ -202,7 +239,7 @@ public class VisaoAtor {
             }
         } while (!dadosCorretos);
 
-        Ator a = new Ator(nome, genero, dataLancamento, nacionalidade);
+        Ator a = new Ator(nome, genero, dataNascimento, nacionalidade);
         return a;
     }
 
@@ -212,21 +249,20 @@ public class VisaoAtor {
      * @return Ator novo com dados atualizados
      */
     public Ator lerAtor(Ator antigo) throws Exception {
-        String nome, nacionalidade;
-        char genero;
+        // Definir os atributos de um Ator
+        String nome;
+        char genero = ' ';
         LocalDate dataNascimento = null;
+        String nacionalidade;
 
         // Definir variáveis auxiliares
         boolean dadosCorretos = false;
         String regex = "^\\d{2}/\\d{2}/\\d{4}$";
         Pattern pattern = Pattern.compile(regex);
         String aux;
-
-        System.err.println("Caso deseja manter a informção antiga pressione ENTER em cada campo!!!");
-
-
+        
         do {
-            System.out.print("Qual o nome do Ator (Original: "+antigo.getNome()+")? ");
+            System.out.print("Qual o nome do Ator? ");
             nome = console.nextLine();
 
             // Testar se é para manter os dados antigos
@@ -243,7 +279,7 @@ public class VisaoAtor {
         } while (!dadosCorretos);
 
         do {
-            System.out.print("Qual o gênero do Ator (Original: "+antigo.getGenero()+")? ");
+            System.out.print("Qual o gênero do Ator (M/F/I)? ");
             aux = console.nextLine();
             
             // Testar se é para manter os dados antigos
@@ -256,7 +292,7 @@ public class VisaoAtor {
                 // Testar se a entrada é válida
                 if (!("MFI".indexOf(genero) == -1))
                     dadosCorretos = true;
-                else{
+                else {
                     System.err.println("[ERRO]: O gênero deve ser M/F/I!");
                     dadosCorretos = false;
                 }
@@ -267,13 +303,11 @@ public class VisaoAtor {
         // Reiniciar variável de controle
         dadosCorretos = false;
         // Ler a data de lançamento do Episódio
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
         do {
-            System.out.print("Qual a data de nascimento (Original: "+antigo.getDataNascimento().format(formatter)+")? ");
+            System.out.print("Qual a data de nascimento (dd/MM/yyyy)? ");
             String data = console.nextLine();
             Matcher matcher = pattern.matcher(data);
-
+            
             // Testar se é para manter os dados antigos
             if (data.length() == 0) {
                 dataNascimento = antigo.getDataNascimento();
@@ -282,6 +316,7 @@ public class VisaoAtor {
                 // Testar se a data está no formado correto
                 if (matcher.matches()) {
                     dadosCorretos = true;
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                     dataNascimento = LocalDate.parse(data, formatter);
                 } else
                     System.err.println("[ERRO]: O formato deve ser (dd/MM/yyyy)!");
@@ -289,7 +324,7 @@ public class VisaoAtor {
         } while (!dadosCorretos);
 
         do {
-            System.out.print("Qual a nacionalidade do Ator (Original: "+antigo.getNacionalidade()+")? ");
+            System.out.print("Qual a nacionalidade do Ator? ");
             nacionalidade = console.nextLine();
 
             // Testar se é para manter os dados antigos
@@ -305,7 +340,6 @@ public class VisaoAtor {
                 System.err.println("[ERRO]: A nacionalidade deve ter no mínimo 2 caracteres!");
         } while (!dadosCorretos);
 
-
         return new Ator(antigo.getID(), nome, genero, dataNascimento, nacionalidade);
     }
 
@@ -319,14 +353,15 @@ public class VisaoAtor {
         int idx;
 
         List<Ator> atores = buscarAtorNome();
+
         if (atores == null || atores.isEmpty())
-            System.err.println("[ERRO]: Nenhum ator encontrado!");
+            System.err.println("[ERRO]: Nenhum Ator encontrado!");
         else if (atores.size() == 1)
             a = atores.get(0);
         else {
             do {
                 // Exibir todas as Séries encontradas pelo nome
-                System.out.println("Escolha um Ator: ");    
+                System.out.println("\nEscolha um Ator: \n");    
                 int n = 0;    
                 for (Ator at : atores) 
                     System.out.println((n++) + " - " + at.getNome());    
@@ -357,14 +392,22 @@ public class VisaoAtor {
      * @return Lista de atores encontrados
      */
     public List<Ator> buscarAtorNome() {
+        System.out.println("\n> Busca de Ator por Nome");
         System.out.print("\nNome: ");
         String nome = console.nextLine();
+        
+        List<Ator> atores = new ArrayList<Ator>();
         try {
-            return controleAtor.buscarAtor(nome);
-        } catch (Exception e) {
+            atores = controleAtor.buscarAtorListaInvertida(nome);
+            //atores = controleAtor.buscarAtor(nome);  
+            if (atores.isEmpty()) {
+                System.err.println("\n[ERRO]: Nenhum Ator encontrado!");
+            }
+        } catch(Exception e) {
             System.err.println("\n[ERRO]: " + e.getMessage());
-            return null;
         }
+
+        return atores;
     }
 
     /*
@@ -390,7 +433,7 @@ public class VisaoAtor {
      */
     public void mostrarAtor(Ator a) {
         if (a != null) {
-            System.out.println(a);
+            System.out.print(a);
         }
     }
 }

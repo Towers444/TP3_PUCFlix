@@ -4,16 +4,9 @@ import entidades.Serie;
 import entidades.Episodio;
 import controle.ControleSerie;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-
-import aeds3.ElementoLista;
-import aeds3.ListaInvertida;
-
-import indexador.IndexadorTexto;
 
 public class VisaoSerie {
     
@@ -105,7 +98,7 @@ public class VisaoSerie {
     public void alterarSerie() {
         System.out.println("\nAlteração de Serie");
         try {
-            // Tenta ler o Serie com o ID fornecido
+            // Tenta ler a Serie com o ID fornecido
             Serie s = buscarUmaSerie();
             if (s != null) {
                 System.out.println("\n> Insira os novos dados da Série (caso deseje manter os dados originais, apenas tecle Enter): \n");
@@ -124,14 +117,13 @@ public class VisaoSerie {
                         System.err.println("\n[ERRO]: Não foi possível alterar a Série!");
                     }
                 } else {
-                    System.out.println("Alterações canceladas!");
+                    System.out.println("\nAlterações canceladas!");
                 }
                  console.nextLine(); // Limpar o buffer 
             }
         } catch (Exception e) {
             System.out.println("[ERRO]: " + e.getMessage());
         }
-        
     }
 
 
@@ -143,7 +135,7 @@ public class VisaoSerie {
         System.out.println("\nExclusão de Série");
         // Iniciar bloco try-catch
         try {
-            // Tentar ler o Serie com o ID fornecido
+            // Tentar ler a Serie com o ID fornecido
             Serie s = buscarUmaSerie();
             // Testar se a Série é válida
             if (s != null) {
@@ -210,7 +202,7 @@ public class VisaoSerie {
             if (console.hasNextInt()) {
                 anoLancamento = console.nextInt();
                 // Testar se o ano é válido
-                if(1000 <= anoLancamento && anoLancamento <= 9999)
+                if (1000 <= anoLancamento && anoLancamento <= 9999)
                     dadosCorretos = true;
             } else {
                 System.err.println("[ERRO]: O ano deve ser de 4 dígitos!");
@@ -551,13 +543,17 @@ public class VisaoSerie {
         List<Serie> series = new ArrayList<Serie>();
         // Tentar buscar Séries a partir do Nome 
         try {
-            controleSerie.buscarSerieListaInvertida(nome);
-            series = controleSerie.buscarSerie(nome);  // Chama o método de leitura da classe Arquivo
-            return series;
+            series = controleSerie.buscarSerieListaInvertida(nome);
+            //series = controleSerie.buscarSerie(nome);  
+            // Testar se alguma Série foi encontrada
+            if (series.isEmpty()) {
+                System.err.println("\n[ERRO]: Nenhuma Série encontrada!");
+            }
         } catch(Exception e) {
             System.err.println("\n[ERRO]: " + e.getMessage());
-            return series;
         }
+        // Retornar
+        return series;
     }   
 
     /*

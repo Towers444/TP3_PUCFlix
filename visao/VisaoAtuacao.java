@@ -143,11 +143,11 @@ public class VisaoAtuacao {
         System.out.println("\nAlteração de Atuacao");
         try {
             // Tenta ler o Atuacao com o ID fornecido
-            Atuacao s = buscarUmaAtuacao();
-            if (s != null) {
+            Atuacao a = buscarUmaAtuacao();
+            if (a != null) {
                 System.out.println("\n> Insira os novos dados da Atuação (caso deseje manter os dados originais, apenas tecle Enter): \n");
-                Atuacao nova = lerAtuacao(s);
-                nova.setID(s.getID());
+                Atuacao nova = lerAtuacao(a);
+                nova.setID(a.getID());
 
                 // Confirmação da alteração
                 System.out.print("\nConfirma as alterações? (S/N) ");
@@ -249,9 +249,7 @@ public class VisaoAtuacao {
         Ator a;
 
         int IDSerie = -1;
-        int IDAtor = -1;
-
-        
+        int IDAtor = -1;      
         String aux;
 
         // Definir variável de controle
@@ -259,7 +257,7 @@ public class VisaoAtuacao {
         // Iniciar bloco de seleção
         do {
             // Ler opção 
-            System.out.print("Deseja Alterar a Série? [y/n]");
+            System.out.print("Deseja Alterar a Série (S/N)? ");
             aux = console.nextLine();
             // Testar se é para manter os dados antigos
             if (aux.length() == 0 || aux.charAt(0) == 'n' || aux.charAt(0) == 'N') {
@@ -273,13 +271,13 @@ public class VisaoAtuacao {
                     IDSerie = s.getID();
                 }
                 else
-                    System.err.println("[ERRO]: Escolha uma série válida!");
+                    System.err.println("[ERRO]: Escolha uma Série válida!");
             }
         } while (!dadosCorretos);
 
         do {
             // Ler o nome da Atuação
-            System.out.print("Deseja Alterar o Ator? [y/n]");
+            System.out.print("\nDeseja Alterar o Ator (S/N)? ");
             aux = console.nextLine();
             // Testar se é para manter os dados antigos
             if (aux.length() == 0 || aux.charAt(0) == 'n' || aux.charAt(0) == 'N') {
@@ -298,7 +296,7 @@ public class VisaoAtuacao {
                     IDAtor = a.getID();
                 }
                 else
-                    System.err.println("[ERRO]: Escolha uma série válida!");
+                    System.err.println("[ERRO]: Escolha um Ator válido!");
             }
         } while (!dadosCorretos);
 
@@ -307,7 +305,7 @@ public class VisaoAtuacao {
         // Iniciar bloco de seleção
         do {
             // Ler o Personagem da Atuação
-            System.out.print("Qual o Personagem? ");
+            System.out.print("\nQual o Nome do Personagem? ");
             personagem = console.nextLine();
             // Testar se é para manter os dados antigos
             if (personagem.length() == 0){
@@ -355,7 +353,7 @@ public class VisaoAtuacao {
             // Iniciar bloco de seleção
             do {
                 // Exibir todas as Atuações encontradas pelo nome
-                System.out.println("Escolha uma Atuação: ");    
+                System.out.println("\nEscolha uma Atuação: ");    
                 int n = 0;    
                 for (Atuacao l : Atuacaos) 
                     System.out.println((n++) + " - " + l.getPersonagem());    
@@ -392,22 +390,27 @@ public class VisaoAtuacao {
         // Ler o nome digitado pelo usuário
         System.out.print("\nNome do Personagem: ");
         String nome = console.nextLine();  // Lê o título digitado pelo usuário
-        // Definir lista de Atuações
-        List<Atuacao> Atuacaos = new ArrayList<Atuacao>();
-        // Tentar buscar Atuações a partir do Nome 
+        // Definir lista de Séries
+        List<Atuacao> atuacoes = new ArrayList<Atuacao>();
+        // Tentar buscar Atuações a partir do Nome do Personagem
         try {
-            Atuacaos = controleAtuacao.buscarAtuacao(nome);  // Chama o método de leitura da classe Arquivo
-            return Atuacaos;
+            atuacoes = controleAtuacao.buscarAtuacaoListaInvertida(nome);
+            //atuacoes = controleAtuacao.buscarAtuacao(nome);  
+            // Testar se alguma Atuação foi encontrada
+            if (atuacoes.isEmpty()) {
+                System.err.println("\n[ERRO]: Nenhuma Atuação encontrada!");
+            }
         } catch(Exception e) {
             System.err.println("\n[ERRO]: " + e.getMessage());
-            return Atuacaos;
         }
+        // Retornar
+        return atuacoes;
     }   
 
     /*
      * buscarAtuacoesSerie - Ler uma Série com buscarUmaSerie() e buscar todas as Atuações vinculadas a ela 
-     *                       com ControleAtuacao.buscarAtuacaoAtor(). Criar um menu de seleção e mostrar a
-     *                       escolhida pelo usuário.
+     * com ControleAtuacao.buscarAtuacaoAtor(). Criar um menu de seleção e mostrar a
+     * escolhida pelo usuário.
      */
     public void buscarAtuacoesSerie(){
         try {
@@ -451,7 +454,6 @@ public class VisaoAtuacao {
                     }
                 } while(!dadosCorretos);        
             }
-
             // Mostrar a Atuação selecionada
             mostraAtuacao(a);
 

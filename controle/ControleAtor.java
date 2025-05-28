@@ -89,6 +89,19 @@ public class ControleAtor {
     }
 
     /*
+	 * buscarAtorListaInvertida - Função para buscar Atores utilizando a lista invertida
+	 * @param entrada - Texto da consulta inserido pelo usuário (ex: nome do Ator ou termos associados)
+     * @return atores - Lista de Atores encontrados na busca da lista invertida
+     */
+    public List<Ator> buscarAtorListaInvertida(String entrada) throws Exception {
+        // Ler todas os Atores encontrados na lista invertida
+        List<Ator> atores = arqAtor.readListaInvertida(entrada);
+
+        // Retornar
+        return atores;
+    }
+
+    /*
     * buscarAtor - Retorna todos os Atores cadastrados
     * @return Lista de todos os Atores
     */

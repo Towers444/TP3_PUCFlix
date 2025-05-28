@@ -1,5 +1,8 @@
 package modelo;
 
+import aeds3.Arquivo;
+import aeds3.ArvoreBMais;
+import aeds3.ElementoLista;
 import entidades.Serie;
 import entidades.Episodio;
 import controle.ControleSerie;
@@ -7,11 +10,10 @@ import controle.ControleSerie;
 import java.util.ArrayList;
 import java.util.List;
 
-import aeds3.*;
-
 public class ArquivoSerie extends Arquivo<Serie> {
-    ArvoreBMais<ParIDID> indiceSerieEpisodio;
-    ArvoreBMais<ParNomeID> indiceNome;
+    private ArvoreBMais<ParIDID> indiceSerieEpisodio;
+    private ArvoreBMais<ParNomeID> indiceNome;
+    private Buscador buscador;
 
     /*
      * Construtor da classe ArquivoSerie
@@ -32,6 +34,9 @@ public class ArquivoSerie extends Arquivo<Serie> {
             ParNomeID.class.getConstructor(), 
             5, 
             "./dados/"+nomeEntidade+"/indiceNome.db");
+
+        // Chamar o construtor do Buscador para entidades do tipo Série
+        this.buscador = new Buscador("serie");
     }
 
     /*
@@ -47,6 +52,9 @@ public class ArquivoSerie extends Arquivo<Serie> {
         // Criar o índice Nome-Série
         ParNomeID pnid = new ParNomeID(s.getNome(), id);
         indiceNome.create(pnid);
+
+        // Adicionar o nome da Série à lista invertida
+        buscador.incluirEntidade(s.getID(), s.getNome());
 
         // Retornar o ID da Série
         return id;
@@ -73,8 +81,8 @@ public class ArquivoSerie extends Arquivo<Serie> {
             throw new Exception ("Não foi possível excluir a Série, pois há Episódios vinculados a ela!");
 
         // Excluir a Série a partir da superclasse e testar o seu status para excluir os índices
-        if(super.delete(id)){
-            resposta = indiceNome.delete(new ParNomeID(s.getNome(), id));
+        if (super.delete(id)){
+            resposta = indiceNome.delete(new ParNomeID(s.getNome(), id)) && buscador.excluirEntidade(s.getID(), s.getNome());
         } else {
             resposta = false;
         }
@@ -103,8 +111,11 @@ public class ArquivoSerie extends Arquivo<Serie> {
                 // Remover o Par Nome-Série anterior
                 indiceNome.delete(new ParNomeID(s.getNome(), s.getID()));
 
-                // Recriar o pindice com o Nome alterado
+                // Recriar o indice com o Nome alterado
                 indiceNome.create(new ParNomeID(novaSerie.getNome(), novaSerie.getID()));
+
+                // Atualizar os termos da entidade na lista invertida
+                buscador.alterarEntidade(s.getID(), s.getNome(), novaSerie.getNome());
             }
             resposta = true;
         } else {
@@ -175,6 +186,32 @@ public class ArquivoSerie extends Arquivo<Serie> {
         int i = 0;
         for(ParNomeID pni: pnis) 
             series[i++] = this.read(pni.getID());
+
+        // Retornar
+        return series;
+    }
+
+    /*
+	 * readListaInvertida - Função para buscar Séries utilizando a lista invertida
+	 * @param entrada - Texto da consulta inserido pelo usuário (ex: nome da Série ou termos associados)
+     * @return series - Lista de Séries encontradas na busca da lista invertida
+     */
+    public List<Serie> readListaInvertida(String entrada) throws Exception {
+        // Realizar a busca de Séries com base nos termos da entrada e total de séries indexados
+        List<ElementoLista> elementos = buscador.buscarEntidades(entrada, this.buscador.getNumeroEntidades());
+
+        // Testar se a busca teve sucesso
+        if (elementos == null || elementos.isEmpty()) 
+            throw new Exception("Nome não encontrado na Lista Invertida!");
+
+        // Criar lista de Séries a ser retornada
+        List<Serie> series = new ArrayList<Serie>();
+
+        // Buscar as Séries encontradas na lista invertida
+        for (ElementoLista elemento : elementos) {
+            Serie s = read(elemento.getId());
+            series.add(s);
+        }
 
         // Retornar
         return series;

@@ -173,6 +173,19 @@ public class ControleEpisodio {
     }
 
     /*
+	 * buscarEpisodioListaInvertida - Função para buscar Episódios utilizando a lista invertida
+	 * @param entrada - Texto da consulta inserido pelo usuário (ex: nome do Episódio ou termos associados)
+     * @return episodios - Lista de Episódios encontrados na Lista Invertida
+     */
+    public List<Episodio> buscarEpisodioListaInvertida(String entrada) throws Exception {
+        // Ler todos os Episódios encontrados na lista invertida
+        List<Episodio> episodios = arqEpisodio.readListaInvertida(entrada);
+
+        // Retornar
+        return episodios;
+    }
+
+    /*
      * buscarEpisodio - Função para buscar um Episódio a partir do seu ID
      * @param id - ID do Episódio a ser buscado
      * @return e - Objeto do Episódio buscado

@@ -145,6 +145,19 @@ public class ControleAtuacao {
     }
 
     /*
+	 * buscarAtuacaoListaInvertida - Função para buscar Atuações utilizando a lista invertida
+	 * @param entrada - Texto da consulta inserido pelo usuário (ex: nome da Atuação ou termos associados)
+     * @return atuacoes - Lista de Atuações encontradas na busca da lista invertida
+     */
+    public List<Atuacao> buscarAtuacaoListaInvertida(String entrada) throws Exception {
+        // Ler todas as Atuações encontradas na lista invertida
+        List<Atuacao> atuacoes = arqAtuacao.readListaInvertida(entrada);
+
+        // Retornar
+        return atuacoes;
+    }
+
+    /*
      * buscarAtuacao - Função para buscar uma ou mais Atuações dado um ID de Ator
      * @param IDAtor - ID de Ator que será pesquisado 
      * @return atuacoes - Lista dos Atuações que pertencem ao Ator
@@ -248,9 +261,8 @@ public class ControleAtuacao {
 
             // Black Mirror
             incluirAtuacao(new Atuacao(7,1, "Nanette Cole"));
-
             
-            System.out.println("\nAtuaçãos povoados!");
+            System.out.println("\nAtuações povoadas!");
 
         } catch (Exception a){
             System.err.println("\n[ERRO]: " + a.getMessage());

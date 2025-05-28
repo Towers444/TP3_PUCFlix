@@ -1,25 +1,28 @@
 package modelo;
 
+import aeds3.Arquivo;
+import aeds3.ArvoreBMais;
+import aeds3.ElementoLista;
 import entidades.Atuacao;
 import controle.ControleAtor;
 import controle.ControleSerie;
-import aeds3.Arquivo;
-import aeds3.ArvoreBMais;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ArquivoAtuacao extends Arquivo<Atuacao> {
-    ArvoreBMais<ParNomeID> indicePersonagem;
-    ArvoreBMais<ParIDID> indiceSerieAtuacao;
-    ArvoreBMais<ParIDID> indiceAtorAtuacao;
+    private ArvoreBMais<ParNomeID> indicePersonagem;
+    private ArvoreBMais<ParIDID> indiceSerieAtuacao;
+    private ArvoreBMais<ParIDID> indiceAtorAtuacao;
+    private Buscador buscador;
 
     /*
      * Construtor da classe ArquivoAtuacao
      */
     public ArquivoAtuacao() throws Exception {
         // Chamar o construtor da classe herdada
-        super("Atuacao", Atuacao.class.getConstructor());
+        super("atuacao", Atuacao.class.getConstructor());
 
         // Chamar o construtor do índice de Nome do Ator e ID da sua atuação
         indicePersonagem = new ArvoreBMais<> (
@@ -40,6 +43,9 @@ public class ArquivoAtuacao extends Arquivo<Atuacao> {
             5, 
             "./dados/indice/indiceAtorAtuacao.db"
         );   
+
+        // Chamar o construtor do Buscador para entidades do tipo Atuação 
+        this.buscador = new Buscador("atuacao");
     }
 
 
@@ -59,6 +65,9 @@ public class ArquivoAtuacao extends Arquivo<Atuacao> {
 
         // Criar o índice AtorNome-Atuacao
         indicePersonagem.create(new ParNomeID(a.getPersonagem(), id));
+
+        // Adicionar o nome da Atuacao à lista invertida
+        buscador.incluirEntidade(a.getID(), a.getPersonagem());
 
         // Retornar o ID
         return id;
@@ -95,7 +104,8 @@ public class ArquivoAtuacao extends Arquivo<Atuacao> {
         if(super.delete(id))
             resposta = indiceSerieAtuacao.delete(new ParIDID(a.getIDSerie(), id)) 
             && indiceAtorAtuacao.delete(new ParIDID(a.getIDSerie(), id))
-            && indicePersonagem.delete(new ParNomeID(a.getPersonagem(), id));
+            && indicePersonagem.delete(new ParNomeID(a.getPersonagem(), id))
+            && buscador.excluirEntidade(a.getID(), a.getPersonagem());
         else
             resposta = false;
 
@@ -144,6 +154,9 @@ public class ArquivoAtuacao extends Arquivo<Atuacao> {
 
                 // Recriar o índice com o Nome alterado
                 indicePersonagem.create(new ParNomeID(novoAtuacao.getPersonagem(), novoAtuacao.getID()));
+
+                // Atualizar os termos da entidade na lista invertida
+                buscador.alterarEntidade(a.getID(), a.getPersonagem(), novoAtuacao.getPersonagem());
             }
 
             resposta = true;
@@ -178,6 +191,32 @@ public class ArquivoAtuacao extends Arquivo<Atuacao> {
 
         // Retornar
         return Arrays.asList(Atuacoes);
+    }
+
+    /*
+	 * readListaInvertida - Função para buscar Atuações utilizando a lista invertida
+	 * @param entrada - Texto da consulta inserido pelo usuário (ex: nome da Atuação ou termos associados)
+     * @return atuacoes - Lista de Atuações encontradas na busca da lista invertida
+     */
+    public List<Atuacao> readListaInvertida(String entrada) throws Exception {
+        // Realizar a busca de Atuações com base nos termos da entrada e total de séries indexados
+        List<ElementoLista> elementos = buscador.buscarEntidades(entrada, this.buscador.getNumeroEntidades());
+
+        // Testar se a busca teve sucesso
+        if (elementos == null || elementos.isEmpty()) 
+            throw new Exception("Personagem não encontrado na Lista Invertida!");
+
+        // Criar lista de Atuações a ser retornada
+        List<Atuacao> atuacoes = new ArrayList<Atuacao>();
+
+        // Buscar as Atuações encontradas na lista invertida
+        for (ElementoLista elemento : elementos) {
+            Atuacao a = read(elemento.getId());
+            atuacoes.add(a);
+        }
+
+        // Retornar
+        return atuacoes;
     }
 
     /*
