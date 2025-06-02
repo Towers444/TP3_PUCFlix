@@ -266,6 +266,27 @@ Classes para o tratamento dos arquivos, como expecializações da classe Arquivo
 + toString(): Método para fazer uma versão de String do ParNomeID
 + transforma(): Função para normalizar as strings, deixando minúsculas e sem espaço
 
+
+### Buscador
+
+#### Atributos
+
++ String nomeEntidade
++ String caminhoDicionario
++ String caminhoBlocos
++ ListaInvertida listaInvertida
++ IndexadorTexto idx
+
+#### Funções
+
++ Construtor -> Recebe o parâmetro nomeEntidade e cria tanto a listaInvertida para essa entidade, como os seus caminhos de arquivo. Além de definir a referência do idx.
++ getNumeroEntidades: Retorna o número de entidades presente na lista invertida
++ incluirEntidade: Função para indexar uma entidade e inserir seus termos na lista invertida
++ excluirEntidade: Função para remover os termos de uma entidade na lista invertida
++ alterarEntidade: Função para alterar os termos de uma entidade na lista invertida
++ buscarEntidades: Função para buscar entidades que contêm os termos da consulta, ordenando-as por relevância TF-IDF
+
+
 ## Controle
 
 Classes que realiza a mediação entre as operações dos arquivos e a entrada de dados da Visão
