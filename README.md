@@ -153,6 +153,25 @@ Classe para criar a Entidade Atuação. Implementa a interface EntidadeArquivo
 + byte [] toByteArray(): Função para retornar um arranjo de bytes dado uma instância da classe, registrando os atributos na mesma ordem dos atributos.
 + void fromByteArray(byte[]): Função para preencher um objeto com dados vindos de um arranjo de bytes.
 
+## Indexador
+
+Classes para realizar o tratamento do texto que será inserido na lista invertida
+
+### IndexadorTexto
+
+#### Atributos
+
++ String texto
++ HashSet<String> STOPWORDS
+
+#### Funções
+
++ Contrutor: Possui dois contrutores, um vazio e outro que recebe a string texto.
++ extractLemmas: Função de rotina que executa código em Python e coleta os lemas de uma frase
++ normalizarTexto: Função para remover palavras irrelevantes e limpar o texto
++ calcularFrequencia: Função para calcular a frequência relativa das palavras
++ processar: Função principal que combina limpeza e frequência
+
 ## Modelo
 
 Classes para o tratamento dos arquivos, como expecializações da classe Arquivo e Classes de Pares para o uso dos índices
