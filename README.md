@@ -569,6 +569,7 @@ PucFlix v(versao)
 ## Lucas
 
 <div align="justify">
+Nesta atividade, pude aprender como um buscador de palavras é construído, ainda que a estratégia implementada não contemple toda a complexidade desse tema. Integrar as listas invertidas com cada uma das entidades, permitindo todas as operações básicas do CRUD, apresentou-se como um desafio maior do que esperado, mas com certeza recompensador. Além disso, integrar um sistema criado em Java com bibliotecas em Python para a lematização dos termos de um nome foi bastante produtivo e nos proporcionou uma prática totalmente inusitada até então.
 </div>
 
 ## João
