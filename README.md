@@ -561,6 +561,12 @@ PucFlix v(versao)
 
 # Experiências Individuais
 
+## João
+
+<div align="justify">
+Neste trabalho, tive a experiência de atuar como project manager. Percebi que, para organizar a realização das tarefas, é necessário ter um bom domínio do conteúdo, a fim de destrinchar as atividades a serem realizadas e distribuí-las adequadamente entre os colegas. Esse processo foi muito enriquecedor, tanto para minhas habilidades como desenvolvedor, ao pensar nas abstrações de classes e funções, o que me permitiu compreender melhor a lista invertida, quanto do ponto de vista administrativo, ao lidar com todas essas novas responsabilidades. 
+</div>
+
 ## Augusto
 
 <div align="justify">
@@ -572,11 +578,6 @@ PucFlix v(versao)
 Nesta atividade, pude aprender como um buscador de palavras é construído, ainda que a estratégia implementada não contemple toda a complexidade desse tema. Integrar as listas invertidas com cada uma das entidades, permitindo todas as operações básicas do CRUD, apresentou-se como um desafio maior do que esperado, mas com certeza recompensador. Além disso, integrar um sistema criado em Java com bibliotecas em Python para a lematização dos termos de um nome foi bastante produtivo e nos proporcionou uma prática totalmente inusitada até então.
 </div>
 
-## João
-
-<div align="justify">
-</div>
-
 # Planos futuros
 
 # Materiais adicionais
@@ -584,6 +585,6 @@ Nesta atividade, pude aprender como um buscador de palavras é construído, aind
 Para o planejamento inicial, utilizamos o [google docs](https://docs.google.com/document/d/1C75ZqCawQ5OhWpXl3aonh7J_1SdRE6VenWqyXlGX72c/edit?tab=t.0), definindo regras gerais do processo, datas de reunião e datas de entrega.
 
 # ✒️ Autores
-+ *Augusto Stambassi Duarte* - Project Manager 🧑‍💼 - [Git Pessoal](https://github.com/stambassi)
++ *João Pedro Torres* - Project Manager 🧑‍💼 - [Git Pessoal](https://github.com/Towers444)
++ *Augusto Stambassi Duarte* - Desenvolvedor 👨‍💻 - [Git Pessoal](https://github.com/stambassi)
 + *Lucas Carneiro Nassau Malta* - Desenvolvedor 👨‍💻 - [Git Pessoal](https://github.com/lucascarneiro1202)
-+ *João Pedro Torres* - Desenvolvedor 👨‍💻 - [Git Pessoal](https://github.com/Towers444)
